@@ -9,6 +9,7 @@ use Text::CSV;
 use File::HomeDir;
 use File::Temp;
 use ClientTransactionInfo;
+use Logging;
 
 sub new 
 {
@@ -22,9 +23,17 @@ sub new
     my ($self,$fh) = @_;
     my %client_product_transac ;   
     my $object = new ClientTransactionInfo( );  
+    my $count = 0;
+    open(my $logfile, '>', 'result.log')  or die "Could not open file 'result.log' $!";
     while (my $row = <$fh>)
     {
         chomp $row; 
+        my $time = gmtime();
+        if(length($row) != 176)
+        {
+            print $logfile gmtime()." "."row $count is not valid length dropped\n";
+            next;
+        }
         my $transac = $object->ExtractProductTotalTransaction($row);
         my %product_info = $object->ExtractProductInformation($row);
         my %customer_info = $object->ExtractClientInfo($row);
@@ -56,7 +65,10 @@ sub new
                 $client_product_transac{$customer_info{"client_number"}}{"product_list"}{$code}{"total_transaction"}+= $transac;
             }
         }
+        print $logfile gmtime()." "."row $count processed successfully\n";
+        $count++;
     }
+    close($logfile);
     return %client_product_transac;
 }
 

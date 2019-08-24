@@ -23,6 +23,7 @@ sub new
     my $obj = new DataFileOperations();
     my %json_data = $obj->GenerateDataInJsonFormat($fh);
     my $outputfile =  $obj->WriteCsvFile(\%json_data);
+    close $fh or die "could not close file: $!\n";
     print ("Generated report is :\n");
     print ("$outputfile\n");    
 }
